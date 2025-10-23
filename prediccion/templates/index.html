@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción Titanic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(25, 118, 210, 0.5);
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            border: 1px solid #1976d2;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #1565c0;
+        }
+        
+        .btn-limpiar {
+            background: #757575;
+            padding: 15px 30px;
+            font-size: 16px;
+            width: auto;
+        }
+        
+        .btn-limpiar:hover {
+            background: #616161;
+        }
+        
+        .botones-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .botones-container .btn {
+            flex: 1;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .resultado {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: normal;
+            border: 2px solid;
+        }
+        
+        .sobrevive {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #4caf50;
+        }
+        
+        .no-sobrevive {
+            background: #ffebee;
+            color: #c62828;
+            border-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Predicción de Supervivencia del Titanic</h1>
+        <p class="subtitle">Ingresa los datos del pasajero para predecir su supervivencia</p>
+        
+        <form method="POST" action="">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="pclass">Clase del boleto:</label>
+                    <select name="pclass" id="pclass">
+                        <option value="">Selecciona...</option>
+                        <option value="1" {% if request.POST.pclass == '1' %}selected{% endif %}>1ra clase</option>
+                        <option value="2" {% if request.POST.pclass == '2' %}selected{% endif %}>2da clase</option>
+                        <option value="3" {% if request.POST.pclass == '3' %}selected{% endif %}>3ra clase</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sex">Sexo:</label>
+                    <select name="sex" id="sex">
+                        <option value="">Selecciona...</option>
+                        <option value="0" {% if request.POST.sex == '0' %}selected{% endif %}>Femenino</option>
+                        <option value="1" {% if request.POST.sex == '1' %}selected{% endif %}>Masculino</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="age">Edad:</label>
+                    <input type="number" name="age" id="age" min="0" max="100" step="0.1" value="{{ request.POST.age }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="fare">Tarifa pagada ($0 - $512):</label>
+                    <input type="number" name="fare" id="fare" min="0" max="512" step="0.01" value="{{ request.POST.fare }}">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="sibsp">Hermanos/Cónyuge a bordo:</label>
+                    <input type="number" name="sibsp" id="sibsp" min="0" max="10" value="{{ request.POST.sibsp|default:'0' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="parch">Padres/Hijos a bordo:</label>
+                    <input type="number" name="parch" id="parch" min="0" max="10" value="{{ request.POST.parch|default:'0' }}">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="embarked">Puerto de embarque:</label>
+                <select name="embarked" id="embarked">
+                    <option value="">Selecciona...</option>
+                    <option value="0" {% if request.POST.embarked == '0' %}selected{% endif %}>Southampton (S)</option>
+                    <option value="1" {% if request.POST.embarked == '1' %}selected{% endif %}>Cherbourg (C)</option>
+                    <option value="2" {% if request.POST.embarked == '2' %}selected{% endif %}>Queenstown (Q)</option>
+                </select>
+            </div>
+            
+            <div class="botones-container">
+                <button type="submit" class="btn">Predecir Supervivencia</button>
+                <button type="button" class="btn btn-limpiar" onclick="window.location.href='/'">Limpiar</button>
+            </div>
+        </form>
+        
+        {% if resultado %}
+        <div class="resultado {% if resultado.sobrevive %}sobrevive{% else %}no-sobrevive{% endif %}">
+            {% if resultado.sobrevive %}
+                Resultado: Sobrevivirías
+            {% else %}
+                Resultado: No sobrevivirías
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
